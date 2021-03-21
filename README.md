@@ -4,8 +4,7 @@ Requirements:
 
 Hardware:
 * Node MCU esp8266
-* WS2812B LED strip
-* 5V external power supply
+* WS2812B LED stripe
 
 App:
 * Google Flutter
@@ -14,5 +13,8 @@ App:
 Flutter required plugins:
 * firebase_database
 * flutter_colorpicker (https://pub.dev/packages/flutter_colorpicker)
+
+For testing and simulating you can use Android Studio.
+
 
 
