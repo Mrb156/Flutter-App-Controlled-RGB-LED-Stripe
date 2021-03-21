@@ -2,10 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter_colorpicker/flutter_colorpicker.dart';
 
+//main entry point of the program
 void main() {
-  WidgetsFlutterBinding.ensureInitialized();
+  WidgetsFlutterBinding
+      .ensureInitialized(); //initializing the widgets before building them
 
-  runApp(MyApp());
+  runApp(MyApp()); //building the app
 }
 
 class MyApp extends StatelessWidget {
@@ -18,6 +20,7 @@ class MyApp extends StatelessWidget {
   }
 }
 
+//creating the page with a StatefulWidget (it can be changed)
 class MyHomePage extends StatefulWidget {
   MyHomePage({Key key, this.title}) : super(key: key);
 
@@ -27,7 +30,8 @@ class MyHomePage extends StatefulWidget {
   _MyHomePageState createState() => _MyHomePageState();
 }
 
-final databaseReference = FirebaseDatabase.instance.reference();
+final databaseReference =
+    FirebaseDatabase.instance.reference(); //reach the database's data
 
 int getData() {
   int data;
@@ -44,7 +48,9 @@ int getData() {
 
 final dbRef = FirebaseDatabase.instance.reference().child("Br").once();
 
+//the true magic happens here
 class _MyHomePageState extends State<MyHomePage> {
+  //set variables and methods (some of them aren't used yet)
   int brightness = 20;
   Color pickerColor = Colors.red;
   IconData buttonIcon = Icons.wb_sunny;
@@ -79,6 +85,7 @@ class _MyHomePageState extends State<MyHomePage> {
     });
   }
 
+  //making the base widget
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -93,6 +100,7 @@ class _MyHomePageState extends State<MyHomePage> {
           Container(
             //height: 320,
             color: Colors.white,
+            //building the colorpicker
             child: ColorPicker(
               displayThumbColor: true,
               pickerColor: pickerColor,
@@ -106,6 +114,7 @@ class _MyHomePageState extends State<MyHomePage> {
           ),
           Container(
               //margin: EdgeInsets.symmetric(vertical: 10),
+              //a slider to change the brightness
               child: SliderTheme(
                   data: SliderTheme.of(context).copyWith(
                     activeTrackColor: Colors.grey[700],
@@ -128,13 +137,14 @@ class _MyHomePageState extends State<MyHomePage> {
                       label: brightness.round().toString(),
                       min: 0,
                       max: 100,
-                      //divisions: 20,
+                      //as the slider's state chaanges, it sends its data to the database
                       onChanged: (double value) {
                         databaseReference.update({'Br': brightness.round()});
                         setState(() {
                           brightness = value.toInt();
                         });
                       }))),
+          //for the different programs, that the LED stripe can show, i created a horizontal scrollable widget
           Container(
               margin: EdgeInsets.symmetric(vertical: 20),
               height: 150,
@@ -152,14 +162,18 @@ class _MyHomePageState extends State<MyHomePage> {
               )),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-            children: [single(buttonIcon, lAMP), single(Icons.lightbulb, _set)],
+            children: [
+              single_button(buttonIcon, lAMP),
+              single_button(Icons.lightbulb, _set)
+            ],
           )
         ],
       ),
     ));
   }
 
-  Container single(IconData icon, void any()) {
+  //function for a single button, wich returns a container widget
+  Container single_button(IconData icon, void any()) {
     return Container(
         margin: EdgeInsets.symmetric(vertical: 20),
         height: 64,
@@ -178,7 +192,7 @@ class _MyHomePageState extends State<MyHomePage> {
                   ),
                 ),
                 onTap: () {
-                  any();
+                  any(); //calling the any method parameter
                 },
                 customBorder: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(20)),
@@ -198,6 +212,8 @@ class _MyHomePageState extends State<MyHomePage> {
             ]));
   }
 
+  //these methods are for the single_button widget's any parameter
+  //they are updates the given paths of the database, with the given values
   void lAMP() {
     if (iconState == true) {
       databaseReference.update({
@@ -232,6 +248,7 @@ class _MyHomePageState extends State<MyHomePage> {
     }
   }
 
+  //this method sends values to the firebase from the colorpicker
   void _set() {
     databaseReference.update({'red': pickerColor.red});
     databaseReference.update({'green': pickerColor.green});
@@ -247,6 +264,7 @@ class _MyHomePageState extends State<MyHomePage> {
     });
   }
 
+  //creating the widgets for the different programs
   Container progs(Container cover, String text, String prop) {
     return Container(
         margin: EdgeInsets.symmetric(horizontal: 10),
@@ -304,6 +322,7 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 }
 
+//this is the style of the widgets above
 Container rainbow() {
   return Container(
       height: 90,
@@ -315,27 +334,4 @@ Container rainbow() {
               colors: [Colors.yellow, Colors.red, Colors.indigo, Colors.teal]),
           //color: Colors.grey[500],
           borderRadius: BorderRadius.all(Radius.circular(20))));
-}
-
-class FadeRoute extends PageRouteBuilder {
-  final Widget page;
-  FadeRoute({this.page})
-      : super(
-          pageBuilder: (
-            BuildContext context,
-            Animation<double> animation,
-            Animation<double> secondaryAnimation,
-          ) =>
-              page,
-          transitionsBuilder: (
-            BuildContext context,
-            Animation<double> animation,
-            Animation<double> secondaryAnimation,
-            Widget child,
-          ) =>
-              FadeTransition(
-            opacity: animation,
-            child: child,
-          ),
-        );
 }
