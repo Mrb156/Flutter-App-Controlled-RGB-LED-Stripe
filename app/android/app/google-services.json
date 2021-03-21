@@ -1,0 +1,40 @@
+{
+  "project_info": {
+    "project_number": "726590096135",
+    "firebase_url": "https://led-stripe-default-rtdb.europe-west1.firebasedatabase.app",
+    "project_id": "led-stripe",
+    "storage_bucket": "led-stripe.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:726590096135:android:d9ad46451ab43a64083ba2",
+        "android_client_info": {
+          "package_name": "com.LED.app"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "726590096135-jp3po6alt3i5ndsjo1ua26a27pdii3j9.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyC5_zEpGyouBRgVqrBIQMDlyz5iA1LrWac"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "726590096135-jp3po6alt3i5ndsjo1ua26a27pdii3j9.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
