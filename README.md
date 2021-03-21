@@ -1,14 +1,18 @@
 # LED Stripe english version
 
-Reqirements/ technologies:
+Requirements:
 
 Hardware:
-Node MCU esp8266
-WS2812B LED strip
-5V external power supply
+* Node MCU esp8266
+* WS2812B LED strip
+* 5V external power supply
 
 App:
-Google Flutter
-Firebase database
+* Google Flutter
+* Firebase database
 
- 
+Flutter required plugins:
+* firebase_database
+* flutter_colorpicker (https://pub.dev/packages/flutter_colorpicker)
+
+
