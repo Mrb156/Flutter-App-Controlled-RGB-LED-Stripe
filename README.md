@@ -1,4 +1,4 @@
-# LED Stripe english version
+# App controlled RGB LED Stripe
 
 This project is a simple IoT example.
 
