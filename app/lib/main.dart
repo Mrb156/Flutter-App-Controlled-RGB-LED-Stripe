@@ -181,7 +181,7 @@ class _MyHomePageState extends State<MyHomePage> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: [
-              single_button(buttonIcon, lAMP),
+              //single_button(buttonIcon, lAMP),
               single_button(Icons.lightbulb, _set)
             ],
           )
