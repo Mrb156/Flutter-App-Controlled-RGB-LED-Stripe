@@ -10,6 +10,22 @@ void main() {
   runApp(MyApp()); //building the app
 }
 
+class SizeConfig {
+  static MediaQueryData _mediaQueryData;
+  static double screenWidth;
+  static double screenHeight;
+  static double blockSizeHorizontal;
+  static double blockSizeVertical;
+
+  void init(BuildContext context) {
+    _mediaQueryData = MediaQuery.of(context);
+    screenWidth = _mediaQueryData.size.width;
+    screenHeight = _mediaQueryData.size.height;
+    blockSizeHorizontal = screenWidth / 100;
+    blockSizeVertical = screenHeight / 100;
+  }
+}
+
 class MyApp extends StatelessWidget {
   // This widget is the root of your application.
   @override
@@ -88,6 +104,7 @@ class _MyHomePageState extends State<MyHomePage> {
   //making the base widget
   @override
   Widget build(BuildContext context) {
+    SizeConfig().init(context);
     return Scaffold(
         body: Container(
       color: Colors.white,
@@ -95,7 +112,7 @@ class _MyHomePageState extends State<MyHomePage> {
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: <Widget>[
           SizedBox(
-            height: 50,
+            height: SizeConfig.blockSizeVertical * 7,
           ),
           Container(
             //height: 320,
@@ -106,8 +123,8 @@ class _MyHomePageState extends State<MyHomePage> {
               pickerColor: pickerColor,
               onColorChanged: changeColor,
               showLabel: false,
-              pickerAreaHeightPercent: 0.8,
-              colorPickerWidth: 250,
+              pickerAreaHeightPercent: 1,
+              colorPickerWidth: SizeConfig.blockSizeHorizontal * 70,
               enableAlpha: false,
               pickerAreaBorderRadius: BorderRadius.circular(50),
             ),
@@ -120,9 +137,10 @@ class _MyHomePageState extends State<MyHomePage> {
                     activeTrackColor: Colors.grey[700],
                     inactiveTrackColor: Colors.white,
                     trackShape: RoundedRectSliderTrackShape(),
-                    trackHeight: 1,
+                    trackHeight: SizeConfig.blockSizeHorizontal * 0.1,
                     thumbColor: Colors.white,
-                    thumbShape: RoundSliderThumbShape(enabledThumbRadius: 15.0),
+                    thumbShape: RoundSliderThumbShape(
+                        enabledThumbRadius: SizeConfig.blockSizeHorizontal * 4),
                     overlayColor: Colors.transparent,
                     overlayShape: RoundSliderOverlayShape(overlayRadius: 28.0),
                     valueIndicatorColor: Colors.grey[700],
@@ -147,7 +165,7 @@ class _MyHomePageState extends State<MyHomePage> {
           //for the different programs, that the LED stripe can show, i created a horizontal scrollable widget
           Container(
               margin: EdgeInsets.symmetric(vertical: 20),
-              height: 150,
+              height: SizeConfig.blockSizeVertical * 22,
               child: SingleChildScrollView(
                 scrollDirection: Axis.horizontal,
                 child: Row(
@@ -176,19 +194,19 @@ class _MyHomePageState extends State<MyHomePage> {
   Container single_button(IconData icon, void any()) {
     return Container(
         margin: EdgeInsets.symmetric(vertical: 20),
-        height: 64,
-        width: 130,
+        height: SizeConfig.blockSizeVertical * 10,
+        width: SizeConfig.blockSizeHorizontal * 90,
         child: Stack(children: [
           //Container(child:),
           Material(
               color: Colors.white,
               child: InkWell(
                 child: Container(
-                  height: 65,
-                  width: 130,
+                  height: SizeConfig.blockSizeVertical * 10,
+                  width: SizeConfig.blockSizeHorizontal * 90,
                   child: Icon(
                     icon,
-                    size: 50,
+                    size: SizeConfig.blockSizeVertical * 7,
                   ),
                 ),
                 onTap: () {
@@ -270,8 +288,8 @@ class _MyHomePageState extends State<MyHomePage> {
         margin: EdgeInsets.symmetric(horizontal: 10),
         child: Stack(children: [
           Container(
-              height: 140,
-              width: 140,
+              height: SizeConfig.blockSizeVertical * 21,
+              width: SizeConfig.blockSizeHorizontal * 45.7,
               decoration: new BoxDecoration(
                   color: Colors.white,
                   borderRadius: new BorderRadius.all(Radius.circular(20)),
@@ -287,17 +305,17 @@ class _MyHomePageState extends State<MyHomePage> {
             children: [
               cover,
               SizedBox(
-                height: 10,
+                height: SizeConfig.blockSizeHorizontal * 6,
               ),
               Text(
                 text,
-                style: TextStyle(fontSize: 20),
+                style: TextStyle(fontSize: SizeConfig.blockSizeHorizontal * 7),
               )
             ],
           ),
           Container(
-            height: 150,
-            width: 140,
+            height: SizeConfig.blockSizeVertical * 100,
+            width: SizeConfig.blockSizeHorizontal * 45.7,
             color: Colors.transparent,
             child: Material(
                 color: Colors.transparent,
@@ -325,8 +343,8 @@ class _MyHomePageState extends State<MyHomePage> {
 //this is the style of the widgets above
 Container rainbow() {
   return Container(
-      height: 90,
-      width: 140,
+      height: SizeConfig.blockSizeVertical * 12,
+      width: SizeConfig.blockSizeHorizontal * 45.7,
       decoration: BoxDecoration(
           gradient: LinearGradient(
               begin: Alignment.topRight,
