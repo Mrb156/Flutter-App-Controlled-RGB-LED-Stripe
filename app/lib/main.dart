@@ -1,12 +1,15 @@
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter_colorpicker/flutter_colorpicker.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:ui_design/colorpicker.dart';
 
 //main entry point of the program
-void main() {
+void main() async {
   WidgetsFlutterBinding
       .ensureInitialized(); //initializing the widgets before building them
-
+  await Firebase.initializeApp();
   runApp(MyApp()); //building the app
 }
 
@@ -51,42 +54,25 @@ final databaseReference =
 
 int getData() {
   int data;
-  FirebaseDatabase.instance
-      .reference()
-      .child('Br')
-      .once()
-      .then((DataSnapshot snapshot) {
-    data = snapshot.value;
-    print(data);
-  });
+  FirebaseDatabase.instance.reference().child('Br').once();
   return data;
 }
-
-final dbRef = FirebaseDatabase.instance.reference().child("Br").once();
 
 //the true magic happens here
 class _MyHomePageState extends State<MyHomePage> {
   //set variables and methods (some of them aren't used yet)
-  int brightness = 20;
+  int brightness;
   Color pickerColor = Colors.red;
+  Color _pickerColor;
   IconData buttonIcon = Icons.wb_sunny;
   bool iconState = true;
 
   double size = 120;
   void changeColor(Color color) {
-    setState(() => pickerColor = color);
-  }
-
-  double _bigger() {
-    setState(() {
-      size = 200;
-    });
-  }
-
-  double _smaller() {
-    setState(() {
-      size = 120;
-    });
+    _pickerColor = color;
+    databaseReference
+        .child("Színek")
+        .update({'Br': (_pickerColor.alpha / 2.55).round()});
   }
 
   Icon changeIconToDark() {
@@ -109,59 +95,44 @@ class _MyHomePageState extends State<MyHomePage> {
         body: Container(
       color: Colors.white,
       child: Column(
-        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: <Widget>[
           SizedBox(
             height: SizeConfig.blockSizeVertical * 7,
           ),
           Container(
-            //height: 320,
-            color: Colors.white,
-            //building the colorpicker
-            child: ColorPicker(
-              displayThumbColor: true,
-              pickerColor: pickerColor,
-              onColorChanged: changeColor,
-              showLabel: false,
-              pickerAreaHeightPercent: 1,
-              colorPickerWidth: SizeConfig.blockSizeHorizontal * 70,
-              enableAlpha: false,
-              pickerAreaBorderRadius: BorderRadius.circular(50),
-            ),
-          ),
-          Container(
-              //margin: EdgeInsets.symmetric(vertical: 10),
-              //a slider to change the brightness
-              child: SliderTheme(
-                  data: SliderTheme.of(context).copyWith(
-                    activeTrackColor: Colors.grey[700],
-                    inactiveTrackColor: Colors.white,
-                    trackShape: RoundedRectSliderTrackShape(),
-                    trackHeight: SizeConfig.blockSizeHorizontal * 0.1,
-                    thumbColor: Colors.white,
-                    thumbShape: RoundSliderThumbShape(
-                        enabledThumbRadius: SizeConfig.blockSizeHorizontal * 4),
-                    overlayColor: Colors.transparent,
-                    overlayShape: RoundSliderOverlayShape(overlayRadius: 28.0),
-                    valueIndicatorColor: Colors.grey[700],
-                    showValueIndicator: ShowValueIndicator.always,
-                    valueIndicatorShape: PaddleSliderValueIndicatorShape(),
-                    valueIndicatorTextStyle: TextStyle(
-                      color: Colors.white,
-                    ),
-                  ),
-                  child: Slider(
-                      value: brightness.toDouble(),
-                      label: brightness.round().toString(),
-                      min: 0,
-                      max: 100,
-                      //as the slider's state chaanges, it sends its data to the database
-                      onChanged: (double value) {
-                        databaseReference.update({'Br': brightness.round()});
-                        setState(() {
-                          brightness = value.toInt();
-                        });
-                      }))),
+              //height: 320,
+              color: Colors.white,
+              //building the colorpicker
+              child: FutureBuilder(
+                future: databaseReference.child("Színek").once(),
+                builder: (context, AsyncSnapshot<DataSnapshot> snapshot) {
+                  List lists = [];
+
+                  Map<dynamic, dynamic> values = snapshot.data.value;
+
+                  values.forEach((key, values) {
+                    lists.add(values);
+                  }); //red 1; br 0; blue 2; green 3;
+                  _pickerColor = pickerColor = Color.fromRGBO(lists[1],
+                      lists[3], lists[2], ((lists[0]) * 0.01).toDouble());
+                  return Container(
+
+                      // future:
+                      //     FirebaseDatabase.instance.reference().child("Color").once(),
+                      // builder: (BuildContext context, AsyncSnapshot snapshot) {
+                      child: ColorPicker(
+                    displayThumbColor: true,
+                    pickerColor: _pickerColor,
+                    onColorChanged: changeColor,
+                    showLabel: false,
+                    pickerAreaHeightPercent: 1,
+                    colorPickerWidth: SizeConfig.blockSizeHorizontal * 70,
+                    enableAlpha: true,
+                    pickerAreaBorderRadius: BorderRadius.circular(50),
+                  ));
+                },
+              )),
           //for the different programs, that the LED stripe can show, i created a horizontal scrollable widget
           Container(
               margin: EdgeInsets.symmetric(vertical: 20),
@@ -170,11 +141,11 @@ class _MyHomePageState extends State<MyHomePage> {
                 scrollDirection: Axis.horizontal,
                 child: Row(
                   children: [
-                    progs(rainbow(), 'RAINBOW', "rainbow"),
+                    progs(rainbow(), "RAINBOW", "rainbow"),
                     progs(rainbow(), 'RAINBOW2', "u_rainbow"),
                     progs(rainbow(), 'GRADIENT', "pat"),
+                    progs(rainbow(), 'GRADIENT2', "g_wave"),
                     progs(rainbow(), 'SNAKE', "odavissza"),
-                    progs(rainbow(), 'GRADIENT2', "g_wave")
                   ],
                 ),
               )),
@@ -268,17 +239,17 @@ class _MyHomePageState extends State<MyHomePage> {
 
   //this method sends values to the firebase from the colorpicker
   void _set() {
-    databaseReference.update({'red': pickerColor.red});
-    databaseReference.update({'green': pickerColor.green});
-    databaseReference.update({'blue': pickerColor.blue});
+    databaseReference.child("Színek").update({'Red': _pickerColor.red});
+    databaseReference.child("Színek").update({'Green': _pickerColor.green});
+    databaseReference.child("Színek").update({'Blue': _pickerColor.blue});
     databaseReference.update({
       'SetUp': 'szín' +
           ' ' +
-          pickerColor.red.toString() +
+          _pickerColor.red.toString() +
           ' ' +
-          pickerColor.green.toString() +
+          _pickerColor.green.toString() +
           ' ' +
-          pickerColor.blue.toString()
+          _pickerColor.blue.toString()
     });
   }
 
@@ -325,11 +296,11 @@ class _MyHomePageState extends State<MyHomePage> {
                     databaseReference.update({
                       'SetUp': prop +
                           ' ' +
-                          pickerColor.red.toString() +
+                          _pickerColor.red.toString() +
                           ' ' +
-                          pickerColor.green.toString() +
+                          _pickerColor.green.toString() +
                           ' ' +
-                          pickerColor.blue.toString()
+                          _pickerColor.blue.toString()
                     });
                   },
                   customBorder: RoundedRectangleBorder(
@@ -353,3 +324,42 @@ Container rainbow() {
           //color: Colors.grey[500],
           borderRadius: BorderRadius.all(Radius.circular(20))));
 }
+
+/*
+          Container(
+              //margin: EdgeInsets.symmetric(vertical: 10),
+              //a slider to change the brightness
+              child: SliderTheme(
+                  data: SliderTheme.of(context).copyWith(
+                    activeTrackColor: Colors.grey[700],
+                    inactiveTrackColor: Colors.white,
+                    trackShape: RoundedRectSliderTrackShape(),
+                    trackHeight: SizeConfig.blockSizeHorizontal * 0.1,
+                    thumbColor: Colors.white,
+                    thumbShape: RoundSliderThumbShape(
+                        enabledThumbRadius: SizeConfig.blockSizeHorizontal * 4),
+                    overlayColor: Colors.transparent,
+                    overlayShape: RoundSliderOverlayShape(overlayRadius: 28.0),
+                    valueIndicatorColor: Colors.grey[700],
+                    showValueIndicator: ShowValueIndicator.always,
+                    valueIndicatorShape: PaddleSliderValueIndicatorShape(),
+                    valueIndicatorTextStyle: TextStyle(
+                      color: Colors.white,
+                    ),
+                  ),
+                  child: FutureBuilder(
+                      future: databaseReference.child("Br").once(),
+                      builder: (context, AsyncSnapshot<DataSnapshot> snapshot) {
+                        int br = snapshot.data.value;
+                        return Slider(
+                            value: br.toDouble(),
+                            label: br.round().toString(),
+                            min: 0,
+                            max: 100,
+                            //as the slider's state chaanges, it sends its data to the database
+                            onChanged: (double value) {
+                              databaseReference
+                                  .update({'Br': brightness.round()});
+                              setState(() => brightness = value.toInt());
+                            });
+                      }))),*/
