@@ -26,6 +26,7 @@ dependencies:
   flutter_colorpicker: ^0.3.5
   firebase_core: ^0.7.0
   firebase_database: ^6.0.0
+  cloud_firestore:
 
 
 
