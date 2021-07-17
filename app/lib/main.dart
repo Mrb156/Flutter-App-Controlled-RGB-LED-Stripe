@@ -2,14 +2,20 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter_colorpicker/flutter_colorpicker.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:ui_design/colorpicker.dart';
+//import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:ui_design/alan.dart';
+//import 'package:ui_design/colorpicker.dart';
+import 'progs.dart';
+
+import 'animation.dart';
+import 'animation_rainbow2.dart';
 
 //main entry point of the program
 void main() async {
   WidgetsFlutterBinding
       .ensureInitialized(); //initializing the widgets before building them
   await Firebase.initializeApp();
+
   runApp(MyApp()); //building the app
 }
 
@@ -71,20 +77,9 @@ class _MyHomePageState extends State<MyHomePage> {
   void changeColor(Color color) {
     _pickerColor = color;
     databaseReference
-        .child("Színek")
+        .child("Colors")
         .update({'Br': (_pickerColor.alpha / 2.55).round()});
-  }
-
-  Icon changeIconToDark() {
-    setState(() {
-      buttonIcon = Icons.nightlight_round;
-    });
-  }
-
-  Icon changeIconToLight() {
-    setState(() {
-      buttonIcon = Icons.wb_sunny_rounded;
-    });
+    databaseReference.update({'Br': (_pickerColor.alpha / 2.55).round()});
   }
 
   //making the base widget
@@ -93,69 +88,74 @@ class _MyHomePageState extends State<MyHomePage> {
     SizeConfig().init(context);
     return Scaffold(
         body: Container(
-      color: Colors.white,
+      color: Color(0xEBEBEBEB),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: <Widget>[
           SizedBox(
             height: SizeConfig.blockSizeVertical * 7,
           ),
-          Container(
-              //height: 320,
-              color: Colors.white,
+          Expanded(
               //building the colorpicker
               child: FutureBuilder(
-                future: databaseReference.child("Színek").once(),
-                builder: (context, AsyncSnapshot<DataSnapshot> snapshot) {
-                  List lists = [];
+            future: databaseReference.child("Colors").once(),
+            builder: (context, AsyncSnapshot<DataSnapshot> snapshot) {
+              if (snapshot.hasData) {
+                List<int> lists = [];
+                Map<dynamic, dynamic> values = snapshot.data.value;
+                values.forEach((key, values) {
+                  lists.add(values);
+                }); //red 1; br 0; blue 2; green 3;
+                _pickerColor = pickerColor = Color.fromRGBO(lists[1], lists[3],
+                    lists[2], ((lists[0]) * 0.01).toDouble());
 
-                  Map<dynamic, dynamic> values = snapshot.data.value;
-
-                  values.forEach((key, values) {
-                    lists.add(values);
-                  }); //red 1; br 0; blue 2; green 3;
-                  _pickerColor = pickerColor = Color.fromRGBO(lists[1],
-                      lists[3], lists[2], ((lists[0]) * 0.01).toDouble());
-                  return Container(
-
-                      // future:
-                      //     FirebaseDatabase.instance.reference().child("Color").once(),
-                      // builder: (BuildContext context, AsyncSnapshot snapshot) {
-                      child: ColorPicker(
-                    displayThumbColor: true,
-                    pickerColor: _pickerColor,
-                    onColorChanged: changeColor,
-                    showLabel: false,
-                    pickerAreaHeightPercent: 1,
-                    colorPickerWidth: SizeConfig.blockSizeHorizontal * 70,
-                    enableAlpha: true,
-                    pickerAreaBorderRadius: BorderRadius.circular(50),
-                  ));
-                },
-              )),
+                return Container(
+                    child: ColorPicker(
+                  displayThumbColor: true,
+                  pickerColor: _pickerColor,
+                  onColorChanged: changeColor,
+                  showLabel: false,
+                  pickerAreaHeightPercent: 1,
+                  colorPickerWidth: SizeConfig.blockSizeHorizontal * 70,
+                  enableAlpha: true,
+                  pickerAreaBorderRadius: BorderRadius.circular(50),
+                ));
+              } else {
+                return Center(
+                  child: SizedBox(
+                      width: SizeConfig.blockSizeHorizontal * 20,
+                      height: SizeConfig.blockSizeVertical * 10,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 5,
+                        valueColor: AlwaysStoppedAnimation<Color>(Colors.grey),
+                      )),
+                );
+              }
+            },
+          )),
           //for the different programs, that the LED stripe can show, i created a horizontal scrollable widget
           Container(
-              margin: EdgeInsets.symmetric(vertical: 20),
-              height: SizeConfig.blockSizeVertical * 22,
-              child: SingleChildScrollView(
-                scrollDirection: Axis.horizontal,
-                child: Row(
-                  children: [
-                    progs(rainbow(), "RAINBOW", "rainbow"),
-                    progs(rainbow(), 'RAINBOW2', "u_rainbow"),
-                    progs(rainbow(), 'GRADIENT', "pat"),
-                    progs(rainbow(), 'GRADIENT2', "g_wave"),
-                    progs(rainbow(), 'SNAKE', "odavissza"),
-                  ],
-                ),
-              )),
+            height: SizeConfig.blockSizeVertical * 30,
+            //width: SizeConfig.blockSizeHorizontal * 22,
+            child: ListView(
+              padding: EdgeInsets.symmetric(vertical: 50),
+              scrollDirection: Axis.horizontal,
+              children: [
+                progs(AnimContainer(), "RAINBOW", "rainbow"),
+                progs(AnimContainer2(), 'RAINBOW2', "u_rainbow"),
+                progs(rainbow(), 'GRADIENT', "pat"),
+                progs(rainbow(), 'GRADIENT2', "g_wave"),
+                progs(rainbow(), 'SNAKE', "odavissza"),
+              ],
+            ),
+          ),
           Row(
-            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              //single_button(buttonIcon, lAMP),
-              single_button(Icons.lightbulb, _set)
+              single_button(Icons.lightbulb, _set),
+              //Container(child: Alan())
             ],
-          )
+          ),
         ],
       ),
     ));
@@ -164,15 +164,17 @@ class _MyHomePageState extends State<MyHomePage> {
   //function for a single button, wich returns a container widget
   Container single_button(IconData icon, void any()) {
     return Container(
+        padding: EdgeInsets.symmetric(horizontal: 10),
         margin: EdgeInsets.symmetric(vertical: 20),
         height: SizeConfig.blockSizeVertical * 10,
-        width: SizeConfig.blockSizeHorizontal * 90,
+        width: SizeConfig.blockSizeHorizontal * 80,
         child: Stack(children: [
           //Container(child:),
           Material(
-              color: Colors.white,
+              color: Color(0xEBEBEBEB),
               child: InkWell(
                 child: Container(
+                  padding: EdgeInsets.symmetric(horizontal: 10),
                   height: SizeConfig.blockSizeVertical * 10,
                   width: SizeConfig.blockSizeHorizontal * 90,
                   child: Icon(
@@ -193,55 +195,25 @@ class _MyHomePageState extends State<MyHomePage> {
             borderRadius: new BorderRadius.all(Radius.circular(20)),
             boxShadow: [
               BoxShadow(
-                color: Colors.grey,
-                spreadRadius: 1,
-                blurRadius: 3,
-                offset: Offset(0, 3),
-              )
+                color: Color(0xC8C8C8C8),
+                offset: Offset(15, 15),
+                blurRadius: 32,
+              ),
+              BoxShadow(
+                  blurRadius: 32,
+                  color: Color(0xFFFFFFFF),
+                  offset: Offset(-15, -15)),
             ]));
   }
 
   //these methods are for the single_button widget's any parameter
   //they are updates the given paths of the database, with the given values
-  void lAMP() {
-    if (iconState == true) {
-      databaseReference.update({
-        'SetUp': 'szín' +
-            ' ' +
-            0.toString() +
-            ' ' +
-            0.toString() +
-            ' ' +
-            0.toString()
-      });
-      databaseReference.update({'red': 0});
-      databaseReference.update({'green': 0});
-      databaseReference.update({'blue': 0});
-      changeIconToDark();
-      iconState = false;
-    } else {
-      databaseReference.update({
-        'SetUp': 'szín' +
-            ' ' +
-            255.toString() +
-            ' ' +
-            100.toString() +
-            ' ' +
-            100.toString()
-      });
-      databaseReference.update({'red': 255});
-      databaseReference.update({'green': 100});
-      databaseReference.update({'blue': 100});
-      changeIconToLight();
-      iconState = true;
-    }
-  }
 
   //this method sends values to the firebase from the colorpicker
   void _set() {
-    databaseReference.child("Színek").update({'Red': _pickerColor.red});
-    databaseReference.child("Színek").update({'Green': _pickerColor.green});
-    databaseReference.child("Színek").update({'Blue': _pickerColor.blue});
+    databaseReference.child("Colors").update({'Red': _pickerColor.red});
+    databaseReference.child("Colors").update({'Green': _pickerColor.green});
+    databaseReference.child("Colors").update({'Blue': _pickerColor.blue});
     databaseReference.update({
       'SetUp': 'szín' +
           ' ' +
@@ -254,35 +226,41 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   //creating the widgets for the different programs
-  Container progs(Container cover, String text, String prop) {
+  Container progs(Widget cover, String text, String prop) {
     return Container(
         margin: EdgeInsets.symmetric(horizontal: 10),
         child: Stack(children: [
           Container(
-              height: SizeConfig.blockSizeVertical * 21,
-              width: SizeConfig.blockSizeHorizontal * 45.7,
-              decoration: new BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: new BorderRadius.all(Radius.circular(20)),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.grey,
-                      spreadRadius: 1,
-                      blurRadius: 3,
-                      offset: Offset(0, 3),
-                    )
-                  ])),
-          Column(
-            children: [
-              cover,
-              SizedBox(
-                height: SizeConfig.blockSizeHorizontal * 6,
-              ),
-              Text(
-                text,
-                style: TextStyle(fontSize: SizeConfig.blockSizeHorizontal * 7),
-              )
-            ],
+            height: SizeConfig.blockSizeVertical * 100,
+            width: SizeConfig.blockSizeHorizontal * 45.7,
+            decoration: new BoxDecoration(
+                color: Color(0xEBEBEBEB),
+                borderRadius: new BorderRadius.all(Radius.circular(20)),
+                boxShadow: [
+                  BoxShadow(
+                    color: Color(0xC8C8C8C8),
+                    offset: Offset(15, 15),
+                    blurRadius: 32,
+                  ),
+                  BoxShadow(
+                      blurRadius: 32,
+                      color: Color(0xFFFFFFFF),
+                      offset: Offset(-15, -15)),
+                ]),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                cover,
+                SizedBox(
+                  height: SizeConfig.blockSizeHorizontal * 6,
+                  child: Text(
+                    text,
+                    style:
+                        TextStyle(fontSize: SizeConfig.blockSizeHorizontal * 6),
+                  ),
+                ),
+              ],
+            ),
           ),
           Container(
             height: SizeConfig.blockSizeVertical * 100,
@@ -314,8 +292,8 @@ class _MyHomePageState extends State<MyHomePage> {
 //this is the style of the widgets above
 Container rainbow() {
   return Container(
-      height: SizeConfig.blockSizeVertical * 12,
-      width: SizeConfig.blockSizeHorizontal * 45.7,
+      height: SizeConfig.blockSizeVertical * 10,
+      width: SizeConfig.blockSizeHorizontal * 30,
       decoration: BoxDecoration(
           gradient: LinearGradient(
               begin: Alignment.topRight,
